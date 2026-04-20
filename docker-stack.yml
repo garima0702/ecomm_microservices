@@ -1,0 +1,132 @@
+version: "3.8"
+
+services:
+
+  postgres-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: MicroservicesDB
+    ports:
+      - "5432:5432"
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  eureka-server:
+    image: eureka-server:latest
+    ports:
+      - target: 8761     # This is the port inside the container (don't change)
+        published: 8762  # CHANGE THIS to 8762 (your browser port)
+        protocol: tcp
+        mode: host  
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  config-server:
+    image: config-server:latest
+    ports:
+      - "8888:8888"
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  api-gateway:
+    image: api-gateway:latest
+    ports:
+      - "9090:9090"
+    depends_on:
+      - eureka-server
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  product-service:
+    image: product-service:latest
+    ports:
+      - "8051:8051"
+    depends_on:
+      - eureka-server
+      - postgres-db
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  product-catalog-service:
+    image: product-catalog:latest
+    ports:
+      - "8050:8050"
+    depends_on:
+      - eureka-server
+      - postgres-db
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  product-inventory-service:
+    image: product-inventory:latest
+    ports:
+      - "8053:8053"
+    depends_on:
+      - eureka-server
+      - postgres-db
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  product-price-service:
+    image: product-price:latest
+    ports:
+      - "8052:8052"
+    depends_on:
+      - eureka-server
+      - postgres-db
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  recommendation-service:
+    image: recommendation:latest
+    ports:
+      - "8056:8056"
+    depends_on:
+      - eureka-server
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  cart-service:
+    image: cart-service:latest
+    ports:
+      - "8055:8055"
+    depends_on:
+      - eureka-server
+      - postgres-db
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - microservices-network
+    deploy:
+      replicas: 1
+
+networks:
+  microservices-network:
+    external: true

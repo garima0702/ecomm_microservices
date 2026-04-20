@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-price
+  namespace: ecommerce-app
+spec:
+  selector:
+    app: product-price
+  ports:
+    - port: 80
+      targetPort: 8052
