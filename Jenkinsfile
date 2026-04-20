@@ -1,29 +1,79 @@
 pipeline {
     agent any
+
+    environment {
+        IMAGE_PREFIX = "microservices"
+    }
+
     stages {
-        stage('Build') {
+
+        stage('Checkout') {
             steps {
-                script {
-                    // Add your build script here
-                    echo 'Building the microservices...'
-                }
+                git branch: 'main', url: ' https://github.com/garima0702/ecomm_microservices.git'
             }
         }
-        stage('Test') {
+
+        stage('Build All Services') {
             steps {
-                script {
-                    // Add your test script here
-                    echo 'Testing the microservices...'
-                }
+                bat 'mvn clean package -f Ecomm_EurekaServer/pom.xml'
+                bat 'mvn clean package -f Ecomm_ConfigServer/pom.xml'
+                bat 'mvn clean package -f APIGateway/pom.xml'
+
+                bat 'mvn clean package -f Product/pom.xml'
+                bat 'mvn clean package -f ProductCatalog/pom.xml'
+                bat 'mvn clean package -f ProductInventory/pom.xml'
+                bat 'mvn clean package -f ProductPrice/pom.xml'
+
+                bat 'mvn clean package -f Cart/pom.xml'
+                bat 'mvn clean package -f Recommendation/pom.xml'
             }
         }
-        stage('Deploy') {
+
+        stage('Docker Build') {
             steps {
-                script {
-                    // Add your deploy script here
-                    echo 'Deploying the microservices...'
-                }
+                bat 'docker build -t eureka ./Ecomm_EurekaServer'
+                bat 'docker build -t config ./Ecomm_ConfigServer'
+                bat 'docker build -t gateway ./APIGateway'
+
+                bat 'docker build -t product ./Product'
+                bat 'docker build -t catalog ./ProductCatalog'
+                bat 'docker build -t inventory ./ProductInventory'
+                bat 'docker build -t price ./ProductPrice'
+
+                bat 'docker build -t cart ./Cart'
+                bat 'docker build -t recommendation ./Recommendation'
             }
+        }
+
+        stage('Stop Old Containers') {
+            steps {
+                bat 'docker rm -f eureka config gateway product catalog inventory price cart recommendation || exit 0'
+            }
+        }
+
+        stage('Run Containers') {
+            steps {
+                bat 'docker run -d -p 8761:8761 --name eureka eureka'
+                bat 'docker run -d -p 8888:8888 --name config config'
+                bat 'docker run -d -p 8080:8080 --name gateway gateway'
+
+                bat 'docker run -d --name product product'
+                bat 'docker run -d --name catalog catalog'
+                bat 'docker run -d --name inventory inventory'
+                bat 'docker run -d --name price price'
+
+                bat 'docker run -d -p 8082:8082 --name cart cart'
+                bat 'docker run -d -p 8083:8083 --name recommendation recommendation'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo " All microservices deployed successfully"
+        }
+        failure {
+            echo " Build failed — check logs"
         }
     }
 }
