@@ -5,10 +5,6 @@ pipeline {
         maven 'maven'
     }
 
-    environment {
-        COMPOSE_PROJECT = "ecomm-microservices"
-    }
-
     stages {
 
         stage('Checkout') {
@@ -54,12 +50,28 @@ pipeline {
             }
         }
 
-        stage('Docker Compose Deploy') {
+        stage('Clean Previous Deployment') {
             steps {
                 bat '''
-                docker-compose down || exit 0
+                echo Cleaning old containers...
+                docker-compose down --remove-orphans || exit 0
+                docker rm -f eureka config gateway product catalog inventory price cart recommendation || exit 0
+                '''
+            }
+        }
+
+        stage('Deploy Using Docker Compose') {
+            steps {
+                bat '''
+                echo Starting fresh deployment...
                 docker-compose up -d --build
                 '''
+            }
+        }
+
+        stage('Verify Containers') {
+            steps {
+                bat 'docker ps'
             }
         }
 
@@ -67,7 +79,7 @@ pipeline {
 
     post {
         success {
-            echo "All services deployed using Docker Compose 🚀"
+            echo "All services deployed successfully 🚀"
         }
         failure {
             echo "Pipeline failed ❌ check logs"
