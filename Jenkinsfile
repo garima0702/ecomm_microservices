@@ -6,7 +6,6 @@ pipeline {
     }
 
     environment {
-        IMAGE_PREFIX = "microservices"
         NETWORK = "ecomm-network"
     }
 
@@ -62,12 +61,21 @@ pipeline {
             }
         }
 
-        stage('Run Containers') {
+        stage('Run Containers (Ordered)') {
             steps {
+
+               
                 bat 'docker run -d --network ecomm-network -p 8761:8761 --name eureka eureka'
                 bat 'docker run -d --network ecomm-network -p 8888:8888 --name config config'
+
+             
+                bat 'echo Waiting for Config Server to start...'
+                bat 'timeout /t 25'
+
+                
                 bat 'docker run -d --network ecomm-network -p 8081:8080 --name gateway gateway'
 
+               
                 bat 'docker run -d --network ecomm-network --name product product'
                 bat 'docker run -d --network ecomm-network --name catalog catalog'
                 bat 'docker run -d --network ecomm-network --name inventory inventory'
