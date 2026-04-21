@@ -70,7 +70,7 @@ pipeline {
 
              
                 bat 'echo Waiting for Config Server to start...'
-                ping 127.0.0.1 -n 25 > nul
+                bat 'ping 127.0.0.1 -n 25 > nul'
 
                 
                 bat 'docker run -d --network ecomm-network -p 8081:8080 --name gateway gateway'
