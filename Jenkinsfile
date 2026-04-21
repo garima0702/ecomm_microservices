@@ -1,6 +1,17 @@
 pipeline {
     agent any
 
+    tools {
+    maven 'Maven'
+        
+}
+
+stage('Build') {
+    steps {
+        bat 'mvn clean package'
+    }
+}
+
     environment {
         IMAGE_PREFIX = "microservices"
     }
