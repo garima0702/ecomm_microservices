@@ -12,6 +12,8 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
+    networks:
+      - ecomm-network
 
   eureka:
     build: ./Ecomm_EurekaServer
@@ -19,6 +21,8 @@ services:
     ports:
       - "8761:8761"
     restart: always
+    networks:
+      - ecomm-network
 
   config:
     build: ./Ecomm_ConfigServer
@@ -28,6 +32,8 @@ services:
     depends_on:
       - eureka
     restart: always
+    networks:
+      - ecomm-network
 
   gateway:
     build: ./APIGateway
@@ -38,6 +44,8 @@ services:
       - config
       - eureka
     restart: always
+    networks:
+      - ecomm-network
 
   product:
     build: ./Product
@@ -45,7 +53,13 @@ services:
     depends_on:
       - config
       - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
     restart: always
+    networks:
+      - ecomm-network
 
   catalog:
     build: ./ProductCatalog
@@ -53,7 +67,13 @@ services:
     depends_on:
       - config
       - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
     restart: always
+    networks:
+      - ecomm-network
 
   inventory:
     build: ./ProductInventory
@@ -61,7 +81,13 @@ services:
     depends_on:
       - config
       - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
     restart: always
+    networks:
+      - ecomm-network
 
   price:
     build: ./ProductPrice
@@ -69,7 +95,13 @@ services:
     depends_on:
       - config
       - postgres-db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
     restart: always
+    networks:
+      - ecomm-network
 
   cart:
     build: ./Cart
@@ -79,6 +111,8 @@ services:
     depends_on:
       - config
     restart: always
+    networks:
+      - ecomm-network
 
   recommendation:
     build: ./Recommendation
@@ -88,3 +122,10 @@ services:
     depends_on:
       - config
     restart: always
+    networks:
+      - ecomm-network
+
+
+networks:
+  ecomm-network:
+    driver: bridge
