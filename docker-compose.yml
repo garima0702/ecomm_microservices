@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+
+  postgres-db:
+    image: postgres:latest
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_DB: MicroservicesDB
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - ecomm-network
+
+  eureka:
+    image: eureka
+    container_name: eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - ecomm-network
+
+  config:
+    image: config
+    container_name: config
+    ports:
+      - "8888:8888"
+    depends_on:
+      - eureka
+    networks:
+      - ecomm-network
+
+  gateway:
+    image: gateway
+    container_name: gateway
+    ports:
+      - "8081:8080"
+    depends_on:
+      - config
+    networks:
+      - ecomm-network
+
+  product:
+    image: product
+    container_name: product
+    depends_on:
+      - config
+      - postgres-db
+    networks:
+      - ecomm-network
+
+  catalog:
+    image: catalog
+    container_name: catalog
+    depends_on:
+      - config
+      - postgres-db
+    networks:
+      - ecomm-network
+
+  inventory:
+    image: inventory
+    container_name: inventory
+    depends_on:
+      - config
+      - postgres-db
+    networks:
+      - ecomm-network
+
+  price:
+    image: price
+    container_name: price
+    depends_on:
+      - config
+      - postgres-db
+    networks:
+      - ecomm-network
+
+  cart:
+    image: cart
+    container_name: cart
+    ports:
+      - "8082:8082"
+    depends_on:
+      - config
+      - postgres-db
+    networks:
+      - ecomm-network
+
+  recommendation:
+    image: recommendation
+    container_name: recommendation
+    ports:
+      - "8083:8083"
+    depends_on:
+      - config
+    networks:
+      - ecomm-network
+
+networks:
+  ecomm-network:
+    driver: bridge
