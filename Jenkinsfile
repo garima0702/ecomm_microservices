@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven'
+        maven 'maven'  
     }
 
     environment {
@@ -19,17 +19,17 @@ pipeline {
 
         stage('Build All Services') {
             steps {
-                bat 'mvn clean package -f Ecomm_EurekaServer/pom.xml'
-                bat 'mvn clean package -f Ecomm_ConfigServer/pom.xml'
-                bat 'mvn clean package -f APIGateway/pom.xml'
+                bat 'mvn clean package -DskipTests -f Ecomm_EurekaServer/pom.xml'
+                bat 'mvn clean package -DskipTests -f Ecomm_ConfigServer/pom.xml'
+                bat 'mvn clean package -DskipTests -f APIGateway/pom.xml'
 
-                bat 'mvn clean package -f Product/pom.xml'
-                bat 'mvn clean package -f ProductCatalog/pom.xml'
-                bat 'mvn clean package -f ProductInventory/pom.xml'
-                bat 'mvn clean package -f ProductPrice/pom.xml'
+                bat 'mvn clean package -DskipTests -f Product/pom.xml'
+                bat 'mvn clean package -DskipTests -f ProductCatalog/pom.xml'
+                bat 'mvn clean package -DskipTests -f ProductInventory/pom.xml'
+                bat 'mvn clean package -DskipTests -f ProductPrice/pom.xml'
 
-                bat 'mvn clean package -f Cart/pom.xml'
-                bat 'mvn clean package -f Recommendation/pom.xml'
+                bat 'mvn clean package -DskipTests -f Cart/pom.xml'
+                bat 'mvn clean package -DskipTests -f Recommendation/pom.xml'
             }
         }
 
