@@ -14,6 +14,11 @@ services:
       - "5432:5432"
     networks:
       - ecomm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d MicroservicesDB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   eureka:
     build: ./Ecomm_EurekaServer
@@ -23,15 +28,21 @@ services:
     restart: always
     networks:
       - ecomm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   config:
     build: ./Ecomm_ConfigServer
     container_name: config
     ports:
       - "8888:8888"
-    depends_on:
-      - eureka
     restart: always
+    depends_on:
+      eureka:
+        condition: service_healthy
     networks:
       - ecomm-network
 
@@ -40,66 +51,76 @@ services:
     container_name: gateway
     ports:
       - "8081:8080"
-    depends_on:
-      - config
-      - eureka
     restart: always
+    depends_on:
+      config:
+        condition: service_started
+      eureka:
+        condition: service_started
     networks:
       - ecomm-network
 
   product:
     build: ./Product
     container_name: product
+    restart: always
     depends_on:
-      - config
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
+      config:
+        condition: service_started
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-    restart: always
     networks:
       - ecomm-network
 
   catalog:
     build: ./ProductCatalog
     container_name: catalog
+    restart: always
     depends_on:
-      - config
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
+      config:
+        condition: service_started
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-    restart: always
     networks:
       - ecomm-network
 
   inventory:
     build: ./ProductInventory
     container_name: inventory
+    restart: always
     depends_on:
-      - config
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
+      config:
+        condition: service_started
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-    restart: always
     networks:
       - ecomm-network
 
   price:
     build: ./ProductPrice
     container_name: price
+    restart: always
     depends_on:
-      - config
-      - postgres-db
+      postgres-db:
+        condition: service_healthy
+      config:
+        condition: service_started
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-    restart: always
     networks:
       - ecomm-network
 
@@ -108,9 +129,10 @@ services:
     container_name: cart
     ports:
       - "8082:8082"
-    depends_on:
-      - config
     restart: always
+    depends_on:
+      config:
+        condition: service_started
     networks:
       - ecomm-network
 
@@ -119,12 +141,12 @@ services:
     container_name: recommendation
     ports:
       - "8083:8083"
-    depends_on:
-      - config
     restart: always
+    depends_on:
+      config:
+        condition: service_started
     networks:
       - ecomm-network
-
 
 networks:
   ecomm-network:
