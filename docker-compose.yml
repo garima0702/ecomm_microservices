@@ -3,103 +3,88 @@ version: '3.8'
 services:
 
   postgres-db:
-    image: postgres:latest
+    image: postgres:15
     container_name: postgres-db
     restart: always
     environment:
       POSTGRES_DB: MicroservicesDB
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
-    networks:
-      - ecomm-network
 
   eureka:
-    image: eureka
+    build: ./Ecomm_EurekaServer
     container_name: eureka
     ports:
       - "8761:8761"
-    networks:
-      - ecomm-network
+    restart: always
 
   config:
-    image: config
+    build: ./Ecomm_ConfigServer
     container_name: config
     ports:
       - "8888:8888"
     depends_on:
       - eureka
-    networks:
-      - ecomm-network
+    restart: always
 
   gateway:
-    image: gateway
+    build: ./APIGateway
     container_name: gateway
     ports:
       - "8081:8080"
     depends_on:
       - config
-    networks:
-      - ecomm-network
+      - eureka
+    restart: always
 
   product:
-    image: product
+    build: ./Product
     container_name: product
     depends_on:
       - config
       - postgres-db
-    networks:
-      - ecomm-network
+    restart: always
 
   catalog:
-    image: catalog
+    build: ./ProductCatalog
     container_name: catalog
     depends_on:
       - config
       - postgres-db
-    networks:
-      - ecomm-network
+    restart: always
 
   inventory:
-    image: inventory
+    build: ./ProductInventory
     container_name: inventory
     depends_on:
       - config
       - postgres-db
-    networks:
-      - ecomm-network
+    restart: always
 
   price:
-    image: price
+    build: ./ProductPrice
     container_name: price
     depends_on:
       - config
       - postgres-db
-    networks:
-      - ecomm-network
+    restart: always
 
   cart:
-    image: cart
+    build: ./Cart
     container_name: cart
     ports:
       - "8082:8082"
     depends_on:
       - config
-      - postgres-db
-    networks:
-      - ecomm-network
+    restart: always
 
   recommendation:
-    image: recommendation
+    build: ./Recommendation
     container_name: recommendation
     ports:
       - "8083:8083"
     depends_on:
       - config
-    networks:
-      - ecomm-network
-
-networks:
-  ecomm-network:
-    driver: bridge
+    restart: always
