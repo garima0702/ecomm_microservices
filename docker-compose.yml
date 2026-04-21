@@ -18,7 +18,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U user -d MicroservicesDB"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   eureka:
     build: ./Ecomm_EurekaServer
@@ -29,10 +29,10 @@ services:
     networks:
       - ecomm-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8761 || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 15
 
   config:
     build: ./Ecomm_ConfigServer
@@ -40,11 +40,16 @@ services:
     ports:
       - "8888:8888"
     restart: always
+    networks:
+      - ecomm-network
     depends_on:
       eureka:
         condition: service_healthy
-    networks:
-      - ecomm-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8888/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
 
   gateway:
     build: ./APIGateway
@@ -52,77 +57,92 @@ services:
     ports:
       - "8081:8080"
     restart: always
-    depends_on:
-      config:
-        condition: service_started
-      eureka:
-        condition: service_started
     networks:
       - ecomm-network
+    depends_on:
+      config:
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
 
   product:
     build: ./Product
     container_name: product
     restart: always
+    networks:
+      - ecomm-network
     depends_on:
       postgres-db:
         condition: service_healthy
       config:
-        condition: service_started
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-    networks:
-      - ecomm-network
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
 
   catalog:
     build: ./ProductCatalog
     container_name: catalog
     restart: always
+    networks:
+      - ecomm-network
     depends_on:
       postgres-db:
         condition: service_healthy
       config:
-        condition: service_started
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-    networks:
-      - ecomm-network
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
 
   inventory:
     build: ./ProductInventory
     container_name: inventory
     restart: always
+    networks:
+      - ecomm-network
     depends_on:
       postgres-db:
         condition: service_healthy
       config:
-        condition: service_started
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-    networks:
-      - ecomm-network
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
 
   price:
     build: ./ProductPrice
     container_name: price
     restart: always
+    networks:
+      - ecomm-network
     depends_on:
       postgres-db:
         condition: service_healthy
       config:
-        condition: service_started
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/MicroservicesDB
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
-    networks:
-      - ecomm-network
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
 
   cart:
     build: ./Cart
@@ -130,11 +150,15 @@ services:
     ports:
       - "8082:8082"
     restart: always
-    depends_on:
-      config:
-        condition: service_started
     networks:
       - ecomm-network
+    depends_on:
+      config:
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
 
   recommendation:
     build: ./Recommendation
@@ -142,11 +166,15 @@ services:
     ports:
       - "8083:8083"
     restart: always
-    depends_on:
-      config:
-        condition: service_started
     networks:
       - ecomm-network
+    depends_on:
+      config:
+        condition: service_healthy
+      eureka:
+        condition: service_healthy
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka
 
 networks:
   ecomm-network:
