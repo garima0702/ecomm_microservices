@@ -2,15 +2,8 @@ pipeline {
     agent any
 
     tools {
-    maven 'Maven'
-        
-}
-
-stage('Build') {
-    steps {
-        bat 'mvn clean package'
+        maven 'maven'
     }
-}
 
     environment {
         IMAGE_PREFIX = "microservices"
@@ -20,7 +13,7 @@ stage('Build') {
 
         stage('Checkout') {
             steps {
-                git branch: 'main', url: ' https://github.com/garima0702/ecomm_microservices.git'
+                git branch: 'main', url: 'https://github.com/garima0702/ecomm_microservices.git'
             }
         }
 
@@ -81,10 +74,10 @@ stage('Build') {
 
     post {
         success {
-            echo " All microservices deployed successfully"
+            echo "All microservices deployed successfully"
         }
         failure {
-            echo " Build failed — check logs"
+            echo "Build failed — check logs"
         }
     }
 }
