@@ -59,7 +59,7 @@ pipeline {
             steps {
                 bat 'docker run -d -p 8761:8761 --name eureka eureka'
                 bat 'docker run -d -p 8888:8888 --name config config'
-                bat 'docker run -d -p 8080:8080 --name gateway gateway'
+                bat 'docker run -d -p 8081:8080 --name gateway gateway'
 
                 bat 'docker run -d --name product product'
                 bat 'docker run -d --name catalog catalog'
